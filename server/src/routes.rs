@@ -1,14 +1,19 @@
 use std::sync::Arc;
 use axum::{middleware, routing::{get, post, put}, Router};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 use crate::handlers::{
     users::*,
     categories::*,
     products::*,
 };
 use crate::jwt_auth::auth_middleware;
+use crate::openapi::ApiDoc;
 use crate::state::AppState;
 
 pub fn create_router(app_state: Arc<AppState>) -> Router {
+    let swagger = Router::new().merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()));
+
     let public_router = Router::new()
         .route("/api/auth/register", post(register_user))
         .route("/api/auth/login", post(login_user))
@@ -32,5 +37,6 @@ pub fn create_router(app_state: Arc<AppState>) -> Router {
 
     public_router
         .merge(protected_router)
+        .merge(swagger)
         .with_state(app_state)
 }

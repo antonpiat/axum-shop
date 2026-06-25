@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
-#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow, ToSchema)]
 pub struct Product {
     pub id: Option<i32>,
     pub name: String,
@@ -16,7 +17,7 @@ pub struct Product {
     pub updated_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams, ToSchema)]
 pub struct ProductQuery {
     pub query: Option<String>,
     pub category_id: Option<i32>,
@@ -36,7 +37,7 @@ pub struct Paginated<T> where T: Serialize {
     pub total_pages: i64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateProductSchema {
     pub name: String,
     pub description: Option<String>,
@@ -46,7 +47,7 @@ pub struct CreateProductSchema {
     pub image_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateProductSchema {
     pub name: String,
     pub description: Option<String>,

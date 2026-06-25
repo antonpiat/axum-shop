@@ -19,6 +19,7 @@ pub mod jwt_auth;
 pub mod models;
 pub mod handlers;
 pub mod routes;
+pub mod openapi;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -26,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     registry()
         .with(EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "ultimatelister_api=debug,tower_http=debug".into()))
+            .unwrap_or_else(|_| "server=debug,tower_http=debug".into()))
         .with(fmt::layer())
         .init();
 
