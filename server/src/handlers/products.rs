@@ -6,8 +6,18 @@ use sqlx::{Postgres, QueryBuilder, Row};
 use crate::error::AppError;
 use crate::models::products::{CreateProductSchema, Paginated, Product, ProductQuery, UpdateProductSchema};
 use crate::models::user::{User, UserRole};
+use crate::openapi::{ErrorResponse, PaginatedProduct, UploadImageResponse};
 use crate::state::AppState;
 
+#[utoipa::path(
+    get,
+    path = "/api/products",
+    tag = "Products",
+    params(ProductQuery),
+    responses(
+        (status = 200, description = "Paginated product list", body = PaginatedProduct),
+    )
+)]
 pub async fn get_page_products(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProductQuery>,
@@ -100,6 +110,16 @@ pub async fn get_page_products(
     }))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/products/{id}",
+    tag = "Products",
+    params(("id" = i32, Path, description = "Product ID")),
+    responses(
+        (status = 200, description = "Product details", body = Product),
+        (status = 404, description = "Product not found", body = ErrorResponse),
+    )
+)]
 pub async fn get_product(
     State(state): State<Arc<AppState>>,
     Path(id): Path<i32>,
@@ -116,6 +136,18 @@ pub async fn get_product(
     Ok(Json(product))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/products",
+    tag = "Products",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    request_body = CreateProductSchema,
+    responses(
+        (status = 200, description = "Product created", body = Product),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+    )
+)]
 pub async fn create_product(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
@@ -139,6 +171,19 @@ pub async fn create_product(
     Ok(Json(product))
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/products/{id}",
+    tag = "Products",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    params(("id" = i32, Path, description = "Product ID")),
+    request_body = UpdateProductSchema,
+    responses(
+        (status = 200, description = "Product updated", body = Product),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+    )
+)]
 pub async fn update_product(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
@@ -164,6 +209,19 @@ pub async fn update_product(
     Ok(Json(product))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/products/{id}",
+    tag = "Products",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    params(("id" = i32, Path, description = "Product ID")),
+    responses(
+        (status = 200, description = "Product deleted", body = String),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+        (status = 404, description = "Product not found", body = ErrorResponse),
+    )
+)]
 pub async fn delete_product(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
@@ -189,6 +247,18 @@ pub async fn delete_product(
     Ok(Json("Deleted successfully".to_string()))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/products/upload",
+    tag = "Products",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    request_body(content_type = "multipart/form-data", description = "Image file field"),
+    responses(
+        (status = 200, description = "Image uploaded", body = UploadImageResponse),
+        (status = 400, description = "No file provided", body = ErrorResponse),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+    )
+)]
 pub async fn upload_image(
     State(_state): State<Arc<AppState>>,
     mut multipart: Multipart,

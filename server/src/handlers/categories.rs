@@ -8,7 +8,16 @@ use crate::error::AppError;
 use crate::state::AppState;
 use crate::models::categories::{Category, CreateCategorySchema, UpdateCategorySchema};
 use crate::models::user::{User, UserRole};
+use crate::openapi::ErrorResponse;
 
+#[utoipa::path(
+    get,
+    path = "/api/categories",
+    tag = "Categories",
+    responses(
+        (status = 200, description = "List all categories", body = Vec<Category>),
+    )
+)]
 pub async fn get_all_categories(
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -20,6 +29,16 @@ pub async fn get_all_categories(
     Ok(Json(categories))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/categories/{id}",
+    tag = "Categories",
+    params(("id" = i32, Path, description = "Category ID")),
+    responses(
+        (status = 200, description = "Category details", body = Category),
+        (status = 404, description = "Category not found", body = ErrorResponse),
+    )
+)]
 pub async fn get_category(
     State(state): State<Arc<AppState>>,
     Path(id): Path<i32>,
@@ -32,6 +51,18 @@ pub async fn get_category(
     Ok(Json(category))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/categories",
+    tag = "Categories",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    request_body = CreateCategorySchema,
+    responses(
+        (status = 200, description = "Category created", body = Category),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+    )
+)]
 pub async fn create_category(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
@@ -54,6 +85,19 @@ pub async fn create_category(
    Ok(Json(category))
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/categories/{id}",
+    tag = "Categories",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    params(("id" = i32, Path, description = "Category ID")),
+    request_body = UpdateCategorySchema,
+    responses(
+        (status = 200, description = "Category updated", body = Category),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+    )
+)]
 pub async fn update_category(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,
@@ -77,6 +121,19 @@ pub async fn update_category(
     Ok(Json(category))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/categories/{id}",
+    tag = "Categories",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    params(("id" = i32, Path, description = "Category ID")),
+    responses(
+        (status = 200, description = "Category deleted", body = String),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+        (status = 403, description = "Admin role required", body = ErrorResponse),
+        (status = 404, description = "Category not found", body = ErrorResponse),
+    )
+)]
 pub async fn delete_category(
     Extension(user): Extension<User>,
     State(state): State<Arc<AppState>>,

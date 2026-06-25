@@ -14,7 +14,7 @@ tower-http = {version = "0.6.10", features = ["cors", "trace", "compression-br",
 tokio = {version = "1.52.3", features = ["full"]}
 
 # Database
-sqlx = {version = "0.8.6", features = ["runtime-tokio-native-tls", "postgres", "chrono", "json", "uuid"]}
+sqlx = {version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "chrono", "json", "uuid"]}
 
 # Serialization
 serde = {version = "1.0.228", features = ["derive"]}
@@ -43,6 +43,10 @@ http = "1.4.0"
 # Time management
 chrono = {version = "0.4.44", features = ["serde"]}
 humantime = "2.3.0"
+
+# OpenAPI / Swagger
+utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 
 [profile.release]
 opt-level = 3

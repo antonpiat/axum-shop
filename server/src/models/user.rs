@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, sqlx::Type)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, sqlx::Type, ToSchema)]
 #[sqlx(type_name = "role")]
 pub enum UserRole {
     Admin,
@@ -48,7 +49,7 @@ pub struct TokenClaims {
     pub exp: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RegisterUserSchema {
     pub username: String,
     pub email: String,
@@ -56,14 +57,14 @@ pub struct RegisterUserSchema {
     pub confirm_password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct LoginUserSchema {
     pub email: String,
     pub password: String,
 }
 
 #[allow(non_snake_case)]
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FilteredUser {
     pub id: String,
     pub username: String,

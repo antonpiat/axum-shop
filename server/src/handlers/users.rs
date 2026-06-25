@@ -13,8 +13,19 @@ use humantime::parse_duration;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use crate::error::AppError;
 use crate::models::user::{FilteredUser, LoginUserSchema, RegisterUserSchema, TokenClaims, User};
+use crate::openapi::ErrorResponse;
 use crate::state::AppState;
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    tag = "Auth",
+    request_body = RegisterUserSchema,
+    responses(
+        (status = 200, description = "User registered successfully", body = FilteredUser),
+        (status = 409, description = "Email already exists or password mismatch", body = ErrorResponse),
+    )
+)]
 pub async fn register_user(
     State(data): State<Arc<AppState>>,
     Json(body): Json<RegisterUserSchema>
@@ -58,6 +69,16 @@ pub async fn register_user(
     Ok(Json(user_response))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    tag = "Auth",
+    request_body = LoginUserSchema,
+    responses(
+        (status = 200, description = "Logged in successfully; sets HTTP-only `token` cookie", body = String),
+        (status = 409, description = "Invalid credentials", body = ErrorResponse),
+    )
+)]
 pub async fn login_user(
     State(data): State<Arc<AppState>>,
     Json(body): Json<LoginUserSchema>
@@ -112,6 +133,16 @@ pub async fn login_user(
     Ok(response)
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/auth/logout",
+    tag = "Auth",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Logged out successfully; clears auth cookie", body = String),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+    )
+)]
 pub async fn logout_user() -> Result<impl IntoResponse, AppError> {
     let cookie = Cookie::build(("token", ""))
         .path("/")
@@ -127,6 +158,16 @@ pub async fn logout_user() -> Result<impl IntoResponse, AppError> {
     Ok(response)
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/auth/me",
+    tag = "Auth",
+    security(("cookie_auth" = []), ("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Current authenticated user", body = FilteredUser),
+        (status = 401, description = "Not authenticated", body = ErrorResponse),
+    )
+)]
 pub async fn get_me(
     Extension(user): Extension<User>,
 ) -> Result<impl IntoResponse, AppError> {
