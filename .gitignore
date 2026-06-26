@@ -1,3 +1,6 @@
 *.env
 /.idea
 */target
+client/node_modules
+client/.next
+client/.env.local
