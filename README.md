@@ -67,7 +67,18 @@ cargo run
 
 The server listens on `http://127.0.0.1:8080` by default.
 
-### 5. Explore the API
+### 5. Start the frontend
+
+```bash
+cd client
+cp .env.local.example .env.local
+pnpm install
+pnpm dev
+```
+
+The storefront runs at `http://localhost:3000`.
+
+### 6. Explore the API
 
 | Resource | URL |
 |----------|-----|
@@ -90,6 +101,7 @@ You can also import [`axum-shop.postman_collection.json`](./axum-shop.postman_co
 | `POSTGRES_PASSWORD` | Docker Compose Postgres password | — |
 | `POSTGRES_DB` | Docker Compose database name | — |
 | `SQLX_OFFLINE` | Skip live DB during `cargo build` when `true` | unset |
+| `NEXT_PUBLIC_API_URL` | Backend URL for the Next.js client | `http://127.0.0.1:8080` |
 
 > **Compile-time SQL checking:** SQLx validates queries against the database at build time. Either keep Postgres running with `DATABASE_URL` set, or run `cargo sqlx prepare` and commit the `.sqlx/` cache, then set `SQLX_OFFLINE=true`.
 
@@ -138,6 +150,35 @@ In Swagger UI, click **Authorize** and use the `bearer_auth` scheme with your JW
 
 Admin-only routes require a user with role `admin` in the database.
 
+To promote a user to admin:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
+```
+
+## Frontend
+
+The Next.js client lives in [`client/`](client/) and uses **pnpm**.
+
+| Route | Description |
+|-------|-------------|
+| `/` | Product catalog with search, filters, pagination |
+| `/products/{id}` | Product detail page |
+| `/login`, `/register` | Authentication |
+| `/account` | User profile |
+| `/admin/products` | Admin product management |
+| `/admin/categories` | Admin category management |
+
+Auth uses HTTP-only cookies set by the backend. All API calls from the browser use `credentials: "include"` against `NEXT_PUBLIC_API_URL`.
+
+```bash
+cd client
+cp .env.local.example .env.local
+pnpm install
+pnpm dev    # http://localhost:3000
+pnpm build  # production build
+```
+
 ## Project structure
 
 ```
@@ -145,6 +186,11 @@ axum-shop/
 ├── docker-compose.yml          # PostgreSQL + Redis
 ├── axum-shop.postman_collection.json
 ├── .env.example
+├── client/                     # Next.js frontend (pnpm)
+│   ├── app/                    # App Router pages
+│   ├── components/
+│   ├── contexts/
+│   └── lib/                    # API client & types
 └── server/
     ├── Cargo.toml
     ├── Makefile
