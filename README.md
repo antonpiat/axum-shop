@@ -240,7 +240,3 @@ Errors return JSON in this shape:
   "error": "Category not found"
 }
 ```
-
-## License
-
-MIT (or your chosen license — update this section as needed).
